@@ -10,7 +10,7 @@ function elementFocus(element) {
 
 function createNoteElement(main) {
     let div = document.createElement('div');
-    div.classList.add('editable');
+    div.classList.add('editable', 'mt-4');
     div.setAttribute('contenteditable', 'true');
     div.setAttribute('placeholder', 'Digite aqui seu texto...');
 

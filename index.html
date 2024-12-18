@@ -6,12 +6,74 @@
     <script src="elements.js"></script>
     <script src="utils.js"></script>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <title>Document</title>
 </head>
-    <body>
-        <main>
+    <body class="flex items-center bg-neutral-900">
+        <aside class="w-80 h-screen px-2 pt-4 border-r-2 border-stone-600 bg-stone-800 opacity-100 visible transition-all duration-500">
+            <div id="sidebarContent">
+                <div class="flex px-2 py-1 rounded hover:bg-stone-700 transition-colors duration-200 font-bold group">
+                    <svg id="icon" class="h-6 w-6 text-zinc-100 mr-2"  fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                      </svg>
+                    Nova Nota
+                    <svg id="actions" class="h-6 w-6 text-zinc-100 ml-auto transition-opacity duration-300 opacity-0 group-hover:opacity-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                    </svg>                      
+                </div>
+                <div class="flex px-2 py-1 rounded hover:bg-stone-700 transition-colors duration-200 font-bold group">
+                    <svg class="h-6 w-6 text-zinc-100 mr-2"  fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                      </svg>
+                    Nova Nota
+                    <svg id="actions" class="h-6 w-6 text-zinc-100 ml-auto transition-opacity duration-300 opacity-0 group-hover:opacity-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                    </svg>      
+                </div>
+            </div>
+        </aside>
+
+        <div id="toggleSideBar" class="py-8 mr-2 bg-stone-600 hover:bg-stone-500 transition-colors duration-300 rounded">
+            <div id="toggleSideBar-element">
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth=2 stroke="currentColor" className="size-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                </svg>
+            </div>
+
+            <script>
+                let aside = document.getElementsByTagName('aside')[0];
+                let toggleSideBar = document.getElementById('toggleSideBar');
+                let element = document.getElementById('toggleSideBar-element');
+                let sidebarContent = document.getElementById("sidebarContent");
+
+
+                toggleSideBar.addEventListener('click', function(){
+                    if (element.classList.contains('rotate-180')) {
+                        element.classList.toggle('rotate-180')
+                        aside.classList.toggle("-translate-x-full");
+                        aside.classList.remove("max-w-0");
+                        aside.classList.add("max-w-xs");
+
+                        setTimeout(function() {
+                            sidebarContent.classList.add("opacity-100", "visible");
+                            sidebarContent.classList.remove("opacity-0", "invisible");
+                        }, 200);
+                    } else {
+                        element.classList.toggle('rotate-180');
+                        aside.classList.toggle("-translate-x-full");
+                        aside.classList.remove("max-w-xs");
+                        aside.classList.add("max-w-0");
+                        
+                        sidebarContent.classList.add("opacity-0", "invisible");
+                        sidebarContent.classList.remove("opacity-100", "visible");
+                    }
+                })
+            </script>
+        </div>
+
+        <main class="h-screen container mx-auto sm:px-6 lg:px-8">
             <div class="header">
-                <h1 class="editable" contenteditable="true">Nova Nota</h1>
+                <h1 class="editable font-bold text-4xl mt-8 mb-4" element="titleheader" contenteditable="true">Nova Nota</h1>
             </div>
             <hr>
         </main>

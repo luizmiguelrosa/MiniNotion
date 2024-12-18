@@ -1,11 +1,31 @@
 document.addEventListener('DOMContentLoaded', ()=> {
     const main = document.querySelector('main');
+    var lastJSONContent;
+
+    setInterval(function(){
+        let elements = document.querySelectorAll('.editable');
+        //console.log(Array.from(elements))
+        let jsonData = Array.from(elements).map(element => ({
+            type: element.getAttribute('element'),
+            tag: element.tagName.toLowerCase(),
+            content: element.innerText,
+        })).filter((item, index, array) => {
+        // Ignore o elemento se o texto for igual ao do próximo elemento
+        return index === array.length - 1 || !(item.type == null && array[index + 1].type !== null);
+    });
+
+        let currentJSONString = JSON.stringify(jsonData);
+        if (lastJSONContent !== currentJSONString) {
+            lastJSONContent = currentJSONString
+            //console.log(currentJSONString)
+        }
+    }, 1000)
 
     document.addEventListener('click', (event)=> {
         const elements = main.getElementsByClassName('editable');
         let lastElement = elements[elements.length - 1];
 
-        if (event.target == document.firstElementChild) {
+        if (event.target == main) {
             if (lastElement.firstChild) createNoteElement(main);
             else elementFocus(lastElement);
         }
@@ -61,8 +81,12 @@ document.addEventListener('DOMContentLoaded', ()=> {
             const text = element.innerText;
             if (/^(#+) (.*)/.test(text)) createTitle(element, text.match(/^(#+) (.*)/));
             if (/^(-+) (.*)/.test(text)) createList(element, text.match(/^(-+) (.*)/));
+            console.log(element.lastChild.lastChild.innerHTML)
             if (element.lastChild && element.lastChild.innerHTML === '<br>') {
                 element.lastChild.remove();
+                createNoteElement(main);
+            } else if (element.lastChild.lastChild && element.lastChild.lastChild.innerHTML === '<br>') {
+                element.lastChild.lastChild.remove();
                 createNoteElement(main);
             }
             if (text.trim() === '') element.innerHTML = '';
