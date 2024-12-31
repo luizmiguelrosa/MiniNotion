@@ -3,7 +3,7 @@
 Com a rotina cada vez mais cheia de compromissos da faculdade, trabalho e projetos pessoais, encontrei no Notion a solução ideal para organizar idéias e tarefas em um só lugar. 
 Após um tempo utilizando a plataforma, uma pergunta começou a surgir: 'Como isso tudo funciona por trás ?'. Foi essa curiosidade que me levou a iniciar uma jornada de estudos para entender melhor a tecnologia por trás.
 
-<h2 align="center">Funcionalidades</h2>
+<h2 align="center">Funcionalidades (Ainda em Desenvolvimento)</h2>
 
 - **Título editável:** a partir do próprio item do título, é possível se fazer a alteração do conteúdo dele.
 - **Nova linha:** quando clicar no espaço vazio da tela, uma nova linha é criada para a inserção do conteúdo.
