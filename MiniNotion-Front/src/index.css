@@ -48,3 +48,14 @@ body {
   line-height: 1;
   margin-bottom: 0px;
 }
+
+::-webkit-scrollbar {
+  @apply w-3
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-stone-700
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-stone-800;
+}

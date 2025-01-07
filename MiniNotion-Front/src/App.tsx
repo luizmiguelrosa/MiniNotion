@@ -1,5 +1,5 @@
 import Note from "./components/Note"
-import SideBar from "./components/SideBar"
+import SideBar from "./components/sidebar/SideBar"
 
 function App() {
     return (

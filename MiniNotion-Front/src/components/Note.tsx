@@ -1,5 +1,5 @@
 import React, { createRef } from "react"
-import EmptyElement from "./Element";
+import EmptyElement from "./elements/EmptyElement";
 
 interface ParentState {
     components: {
@@ -97,16 +97,12 @@ class Note extends React.Component <{}, ParentState> {
     navigateEditable(key: string, target) {
         const index = this.findIndexByID(target.id);
         let nextElement;
-        switch (key) {
-            case 'ArrowDown':
-                nextElement = this.state.components[index + 1];
-                break;
-            case 'ArrowUp':
-                nextElement = this.state.components[index - 1];
-                break;
-            default:
-                break;
-        }
+
+        if (key ==='ArrowDown')
+            nextElement = this.state.components[index + 1];
+        else if (key === 'ArrowUp')
+            nextElement = this.state.components[index - 1];
+
         if (nextElement) nextElement.ref.current?.focus();
     }
 
@@ -137,15 +133,13 @@ class Note extends React.Component <{}, ParentState> {
         })
 
         return (
-            <>
-                <main onKeyUp={this.handleKeyUp} onClick={this.handleClick} onInput={this.handleInput} className="h-screen overflow-y-scroll container mx-auto sm:px-6 lg:px-8">
-                    <div className="header">
-                        <h1 className="editable font-bold text-4xl mt-8 mb-4" element="titleheader" suppressContentEditableWarning contentEditable>Nova Nota</h1>
-                    </div>
+            <main onKeyUp={this.handleKeyUp} onClick={this.handleClick} onInput={this.handleInput} className="h-screen overflow-y-scroll container mx-auto sm:px-6 lg:px-8">
+                <div className="header">
+                    <h1 className="editable font-bold text-4xl mt-8 mb-4" element="titleheader" suppressContentEditableWarning contentEditable>Nova Nota</h1>
+                </div>
 
-                    {components}
-                </main>
-            </>
+                {components}
+            </main>
         )   
     }
 }

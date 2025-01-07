@@ -1,5 +1,4 @@
 import NoteSideBar from "./NoteSideBar"
-import './SideBar.css'
 
 function SideBar() {
     return (
