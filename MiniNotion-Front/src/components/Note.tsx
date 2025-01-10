@@ -1,11 +1,14 @@
 import React, { createRef } from "react"
 import EmptyElement from "./elements/EmptyElement";
+import TitleElement from "./elements/TitleElemet";
+import ListElement from "./elements/ListElement";
 
 interface ParentState {
     components: {
         id: number; 
         ref: React.RefObject<HTMLDivElement>; 
-        type:string
+        type: string;
+        text?: string
     }[];
 } 
 
@@ -29,12 +32,21 @@ class Note extends React.Component <{}, ParentState> {
         return this.getLastElement()?.firstChild || null;
     }
 
-    createElement(type: string, position: number) {
-        const newElement = {
+    createElement(type: string, position: number = -1, text: string = '') {
+        let newElement = {
             id: Date.now(), 
             ref: createRef<HTMLDivElement>(), 
             type: type
         };
+
+        if (type == 'title') {
+            const matchTitle = text.match(/^(#+) (.*)/);
+            const level = Math.min(matchTitle[1].length, 4);
+            const content = matchTitle[2];
+            
+            newElement.text = content;
+            newElement.level = level;  
+        }
         
         this.setState((prevState) => {
             const updatedComponents = [...prevState.components];
@@ -61,7 +73,7 @@ class Note extends React.Component <{}, ParentState> {
     handleClick(event: React.MouseEvent) {
         if (!event.target.classList.contains('editable')) {
             if (this.getFirstChild() || this.state.components.length == 0)
-                this.createElement('empty', -1);
+                this.createElement('empty');
             else
                 this.getLastElement()?.focus();
         }
@@ -79,6 +91,15 @@ class Note extends React.Component <{}, ParentState> {
         const element = event.target;
         if (element.classList.contains('editable')) {
             const text = element.innerText;
+            if (/^(#+) (.*)/.test(text)) {
+                const index = this.findIndexByID(element.id);
+                this.removeElement(index);
+                this.createElement('title', index, text);
+            } else if (/^(-+) (.*)/.test(text)) {
+                const index = this.findIndexByID(element.id);
+                this.removeElement(index);
+                this.createElement('list', index, text);
+            }
             
             if (element.firstChild.lastChild && this.hasBR(element.firstChild.lastChild) && this.hasBR(element.lastChild.lastChild)) {
                 element.firstChild.remove();
@@ -87,8 +108,8 @@ class Note extends React.Component <{}, ParentState> {
             
             if (element.lastChild && element.lastChild.lastChild && this.hasBR(element.lastChild.lastChild)) {
                 element.lastChild.remove();
-                const index = this.findIndexByID(element.id);
-                
+                const index = this.findIndexByID(element.id || element.parentElement.id);
+
                 this.createElement('empty', index + 1);
             }
         }
@@ -129,14 +150,19 @@ class Note extends React.Component <{}, ParentState> {
             switch (comp.type) {
                 case 'empty':
                     return <EmptyElement key={comp.id} id={comp.id} reference={comp.ref}/>
+                case 'title':
+                    return <TitleElement key={comp.id} id={comp.id} reference={comp.ref} level={comp.level} text={comp.text}/>
+                case 'list':
+                    return <ListElement key={comp.id} id={comp.id} reference={comp.ref} text={comp.text}/>
             }
         })
 
         return (
             <main onKeyUp={this.handleKeyUp} onClick={this.handleClick} onInput={this.handleInput} className="h-screen overflow-y-scroll container mx-auto sm:px-6 lg:px-8">
                 <div className="header">
-                    <h1 className="editable font-bold text-4xl mt-8 mb-4" element="titleheader" suppressContentEditableWarning contentEditable>Nova Nota</h1>
+                    <h1 className="editable font-bold text-4xl mt-8 mb-4" suppressContentEditableWarning contentEditable>Nova Nota</h1>
                 </div>
+                
 
                 {components}
             </main>

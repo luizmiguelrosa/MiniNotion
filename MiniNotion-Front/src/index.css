@@ -36,17 +36,13 @@ body {
   outline: none;
   white-space: pre-wrap;
   overflow-wrap: break-word;
+
+  @apply hover:bg-neutral-800/25 rounded
 }
 
 .editable:empty:before {
   content: attr(placeholder);
   color: #999999;
-}
-
-.dot {
-  font-size: 1.5em;
-  line-height: 1;
-  margin-bottom: 0px;
 }
 
 ::-webkit-scrollbar {

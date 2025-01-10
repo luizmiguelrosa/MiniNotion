@@ -5,7 +5,7 @@ class EmptyElement extends Element{
         const { id, reference } = this.props;
 
         return (
-            <div id={id} ref={reference} className="editable mt-4 hover:bg-neutral-800/25 rounded" suppressContentEditableWarning contentEditable placeholder="Digite aqui o seu texto..."></div>
+            <div id={id} ref={reference} className="editable mt-4" suppressContentEditableWarning contentEditable placeholder="Digite aqui o seu texto..."></div>
         )
     }
 }

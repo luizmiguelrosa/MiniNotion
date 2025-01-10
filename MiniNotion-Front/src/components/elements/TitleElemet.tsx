@@ -3,10 +3,12 @@ import Element from "./Element";
 
 class TitleElement extends Element {
     render(): ReactNode {
-        const { id, reference, level } = this.props;
+        const { id, reference, text, level } = this.props;
 
         return (
-            <div id={id} ref={reference} className="" suppressContentEditableWarning contentEditable placeholder={`Titulo ${level}`}></div>
+            <div id={id} ref={reference} className={`editable mt-4 font-bold text-h${level}`} suppressContentEditableWarning contentEditable placeholder={`Titulo ${level}`}>
+                {text}
+            </div>
         )
     }
 }
