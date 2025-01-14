@@ -1,16 +1,9 @@
-import { ReactNode } from "react";
-import Element from "./Element";
+import {Element, ElementProps} from "./element/Element";
 
-class TitleElement extends Element {
-    render(): ReactNode {
-        const { id, reference, text, level } = this.props;
-
-        return (
-            <div id={id} ref={reference} className={`editable mt-4 font-bold text-h${level}`} suppressContentEditableWarning contentEditable placeholder={`Titulo ${level}`}>
-                {text}
-            </div>
-        )
-    }
+export default function TitleElement({id, reference, text, level}: ElementProps) {
+    return (
+        <Element.Root id={id}>
+            <Element.Editable reference={reference} placeholder={`Titulo ${level}`} text={text} className={`font-bold text-h${level}`}/>
+        </Element.Root>
+    )
 }
-
-export default TitleElement;

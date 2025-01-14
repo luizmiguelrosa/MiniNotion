@@ -1,13 +1,9 @@
-import Element from "./Element";
+import {Element, ElementProps} from "./element/Element";
 
-class EmptyElement extends Element{
-    render(): React.ReactNode {
-        const { id, reference } = this.props;
-
-        return (
-            <div id={id} ref={reference} className="editable mt-4" suppressContentEditableWarning contentEditable placeholder="Digite aqui o seu texto..."></div>
-        )
-    }
+export default function EmptyElement({id, reference}: ElementProps) {
+    return (
+        <Element.Root id={id}>
+            <Element.Editable reference={reference} placeholder="Digite aqui o seu texto..."/>
+        </Element.Root>
+    )
 }
-
-export default EmptyElement;
