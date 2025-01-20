@@ -3,6 +3,17 @@
 Com a rotina cada vez mais cheia de compromissos da faculdade, trabalho e projetos pessoais, encontrei no Notion a solução ideal para organizar idéias e tarefas em um só lugar. 
 Após um tempo utilizando a plataforma, uma pergunta começou a surgir: 'Como isso tudo funciona por trás ?'. Foi essa curiosidade que me levou a iniciar uma jornada de estudos para entender melhor a tecnologia por trás.
 
+<h2 align="center">Tecnologias Utilizadas</h2>
+
+
+### Front-End  
+- **React**: Biblioteca JavaScript para criação de interfaces dinâmicas e interativas.  
+- **Tailwind CSS**: Framework utilitário para estilização rápida e customizável, otimizando o desenvolvimento de layouts responsivos.  
+
+### Back-End  
+- **NestJS**: Framework Node.js para construção de aplicações robustas e escaláveis com suporte a TypeScript.  
+- **Mongoose**: Biblioteca para modelagem de dados no MongoDB, oferecendo validação, consultas e funcionalidades avançadas.  
+
 <h2 align="center">Funcionalidades (Ainda em Desenvolvimento)</h2>
 
 - **Título editável:** a partir do próprio item do título, é possível se fazer a alteração do conteúdo dele.
