@@ -8,7 +8,7 @@ interface ElementRootProps {
 
 export function ElementRoot({children, id, ...rest}: ElementRootProps) {
     return (
-        <div id={id} className={twMerge("mt-4", rest.className)}>
+        <div id={id} className={twMerge("mt-4 hover:bg-neutral-800/25 rounded", rest.className)}>
             {children}
         </div>
     )

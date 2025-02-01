@@ -14,7 +14,7 @@ export class PageRepository {
     }
 
     async getAllPages(): Promise<Page[]> {
-        return await this.pageModel.find({}, { __v: false });
+        return await this.pageModel.find({}, { content: false, __v: false });
     }
 
     async getPageById(pageID: string): Promise<Page> {
@@ -23,9 +23,10 @@ export class PageRepository {
 
     async updatePageById(pageID: string, newPage: PageDTO): Promise<Page> {
         return await this.pageModel.findByIdAndUpdate(pageID, newPage, {
-            new: true,
-            useFindAndModify: false,
-        });
+                new: true,
+                useFindAndModify: false,
+            })
+            .select("-__v");
     }
 
     async deletePageById(pageID: string): Promise<Page> {

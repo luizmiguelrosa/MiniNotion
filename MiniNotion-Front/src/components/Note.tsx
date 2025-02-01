@@ -1,7 +1,15 @@
-import React, { createRef, useState } from "react"
+import React, { createRef, useEffect, useRef, useState } from "react"
 import EmptyElement from "./elements/EmptyElement";
 import TitleElement from "./elements/TitleElemet";
 import ListElement from "./elements/ListElement";
+import PageTitleElement from "./elements/PageTitleElemet";
+
+interface PageInterface {
+    _id: string,
+    name: string,
+    parentPage: string,
+    content: object[]
+}
 
 interface ComponentData {
     id: string; 
@@ -11,8 +19,38 @@ interface ComponentData {
     level?: number;
 } 
 
-export default function Note() {
+export default function Note({pageID}) {
+    const [page, setPage] = useState<PageInterface>({})
     const [elements, setElements] = useState<ComponentData[]>([]);
+    const pageTitleRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (page?.content) {         
+            setElements(() => []);   
+            page.content.forEach(element => {
+                createElement(element.type, -1, element.text, element.level, element._id);
+            });
+        }
+    }, [page]);
+
+    useEffect(() => {
+        fetchPage();   
+    }, [pageID]);
+
+    async function fetchPage() {
+        try {
+            const response = await fetch(`http://localhost:3000/page/id/${pageID}`);
+
+            if (!response.ok)
+                throw new Error(response.statusText);
+
+            const result = await response.json();
+            
+            setPage(result);
+        } catch (error) {
+            console.log(error);
+        }
+    }
     
     function getLastElement(): HTMLDivElement | null { 
         const lastElements = elements.at(-1);
@@ -23,26 +61,18 @@ export default function Note() {
         return getLastElement()?.firstChild || null;
     }
 
-    function createElement(type: string, position: number = -1, text: string = ''): void {
-        let newElement = {
-            id: Date.now().toString(), 
-            ref: createRef<HTMLDivElement>(), 
-            type: type
-        };
+    function findIndexByID(elementID: string): number {
+        return elements.findIndex((comp) => comp.id == elementID)
+    }
 
-        if (type == 'title') {
-            const matchTitle = text.match(/^(#+) (.*)/);
-            const level = Math.min(matchTitle[1].length, 4);
-            const content = matchTitle[2];
-            
-            newElement.text = content;
-            newElement.level = level;  
-        } else if (type == 'list') {
-            const matchTitle = text.match(/^(-+) (.*)/);
-            const content = matchTitle[2];
-            
-            newElement.text = content;
-        }
+    function createElement(type: string, position: number = -1, text: string = '', level: number = 1, id: string = Date.now().toString()): void {
+        let newElement = {
+            id: id, 
+            ref: createRef<HTMLDivElement>(), 
+            type: type,
+            text: text,
+            level: level
+        };
         
         setElements((prevElements) => {
             const updatedElements = [...prevElements];
@@ -54,73 +84,106 @@ export default function Note() {
             return updatedElements
         })
     }
+
+    async function modifyElement(method: string, url: string, body: object = {}) {
+        try {
+            const response = await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: body ? JSON.stringify(body) : null
+            });
+            if (!response.ok) throw new Error(response.statusText);
+            return await response.json();
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async function sendElement(type: string, position: number = -1, text: string = '', level: number = 1): void {
+        const newElement = { 
+            type: type,
+            text: text,
+            level: level
+        };
+
+        const result = await modifyElement("POST", `http://localhost:3000/page/create/${page._id}/${position}`, newElement);
+
+        setElements(() => []);
+        setPage(result);
+    }
+
     
-    function removeElement(position: number): void {
+    async function removeElement(position: number): void {
+        const element = elements[position];
+        if (!element) return;
+
+        const response = await modifyElement("DELETE", `http://localhost:3000/page/delete/id/${page._id}/${element.id}`);
+        
         setElements((prevElements) => {
             const updatedElements = [...prevElements];
             updatedElements.splice(position, 1);
             return updatedElements;
-        })
+        });
 
         const lastElement = elements[position - 1] || elements[position + 1]
         if (lastElement) lastElement.ref.current?.focus();
     }
 
+    async function updateElement(element: HTMLElement, text: string) {
+        let body: object;
+        let url: string;
+        
+        if (element.parentElement.id && element.parentElement.id == pageID) {
+            text = (text.length < 1) ? element.getAttribute("placeholder") : text;
+            body = { name: text };
+            url = "/";
+        } else {
+            const elementInPage = page.content.find((element_) => element_._id == element.parentElement.id);
+            body = {_id: elementInPage._id, type: elementInPage.type, text: text, level: elementInPage.level};
+            url = `/${elementInPage._id}`;
+        }
+
+        const response = await modifyElement("PATCH", `http://localhost:3000/page/update/id/${page._id}${url}`, body);
+    }
+    
+    async function handleInput(event: React.FormEvent): void {
+        const element = event.target as HTMLElement;
+        if (!element.classList.contains('editable')) return;
+        
+        const index = findIndexByID(element.parentElement.id);
+        const breakPoint = element.innerText.search("\n");
+        
+        if (event.nativeEvent.inputType === 'insertParagraph' && breakPoint > -1) {
+            const splited = element.innerText.split("\n");
+            element.lastChild?.remove()
+            
+            await updateElement(element, splited[0]);
+            await sendElement('empty', index + 1, splited[1])
+        } else if (event.nativeEvent.inputType === 'insertText') {
+            const text = element.innerText;
+            if (/^(#+) (.*)/.test(text)) {
+                const [, hashes, content] = text.match(/^(#+) (.*)/);
+                await removeElement(index);
+                await sendElement('title', index, content, Math.min(hashes.length, 4));
+            } else if (/^(-+) (.*)/.test(text)) {
+                const [, , content] = text.match(/^(-+) (.*)/);
+                await removeElement(index);
+                await sendElement('list', index, content);
+            } else
+                await updateElement(element, text);
+        }
+    }
+    
     function handleClick(event: React.MouseEvent): void {
         const target = event.target as HTMLElement;
         if (!target.classList.contains('editable')) {
             if (getFirstChild() || elements.length == 0)
-                createElement('empty');
+                sendElement('empty');
             else
                 getLastElement()?.focus();
         }
     }
 
-    function hasBR(element: HTMLElement): boolean {
-        return element.nodeName === 'BR';
-    }
-
-    function findIndexByID(elementID: string): number {
-        return elements.findIndex((comp) => comp.id == elementID)
-    }
-
-    function removeBreakPoints(element: HTMLElement): void {
-        if (element.firstChild.lastChild && hasBR(element.firstChild.lastChild) && hasBR(element.lastChild.lastChild)) {
-            element.firstChild.remove();
-            element.lastChild.remove();
-        }
-
-        if (element.firstChild && hasBR(element.firstChild) && hasBR(element.lastChild))
-            element.lastChild.remove();
-    }
-
-    function isNewLine(element: HTMLElement): boolean | null {
-        return element.lastChild && element.lastChild.lastChild && hasBR(element.lastChild.lastChild)
-    }
-    
-    function handleInput(event: React.FormEvent): void {
-        console.log(event);
-        
-        const element = event.target as HTMLElement;
-        const index = findIndexByID(element.parentElement.id);
-        if (element.classList.contains('editable')) {
-            const text = element.innerText;
-            if (/^(#+) (.*)/.test(text)) {
-                removeElement(index);
-                createElement('title', index, text);
-            } else if (/^(-+) (.*)/.test(text)) {
-                removeElement(index);
-                createElement('list', index, text);
-            }
-            
-            removeBreakPoints(element);
-            if (isNewLine(element)) {
-                element.lastChild.remove();
-                createElement('empty', index + 1);
-            }
-        }
-    }
-    
     function navigateEditable(key: string, target: HTMLElement): void {
         const index = findIndexByID(target.parentElement.id);
         const nextElement = key === 'ArrowDown' ? elements[index + 1] : elements[index - 1];
@@ -129,10 +192,15 @@ export default function Note() {
     }
     
     function handleBackspace(target: HTMLElement) {
-        if (target.innerText === '') {
-            const index = findIndexByID(target.id)
+        const breakPoint = target.innerText.search("\n");
+        if (target.innerText === '' && breakPoint == -1) {
+            const index = findIndexByID(target.parentElement.id)
             removeElement(index);
-        }
+        } else if (breakPoint == 0) {
+            target.innerText = '';
+            updateElement(target, '');
+        } else
+            updateElement(target, target.innerText);
     }
     
     function handleKeyUp(event: React.KeyboardEvent) {
@@ -146,14 +214,12 @@ export default function Note() {
 
     return (
             <main onKeyUp={handleKeyUp} onClick={handleClick} onInput={handleInput} className="h-screen overflow-y-scroll container mx-auto sm:p-6 lg:p-8">
-                <div className="mb-4">
-                    <h1 className="editable font-bold text-4xl" suppressContentEditableWarning contentEditable>Nova Nota</h1>
-                </div>
+                <PageTitleElement id={page._id} reference={pageTitleRef} text={page.name}/>
                 
                 {elements.map((comp)=>{
                     switch (comp.type) {
                         case 'empty':
-                            return <EmptyElement key={comp.id} id={comp.id} reference={comp.ref}/>
+                            return <EmptyElement key={comp.id} id={comp.id} reference={comp.ref} text={comp.text}/>
                         case 'title':
                             return <TitleElement key={comp.id} id={comp.id} reference={comp.ref} level={comp.level} text={comp.text}/>
                         case 'list':
@@ -162,5 +228,4 @@ export default function Note() {
                 })}
             </main>
         )
-    
 }

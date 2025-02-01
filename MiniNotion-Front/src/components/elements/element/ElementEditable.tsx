@@ -13,7 +13,7 @@ export function ElementEditable({reference, placeholder, text, ...rest}: Element
     })
 
     return (
-        <div ref={reference} className={twMerge("editable", rest.className)} suppressContentEditableWarning contentEditable placeholder={placeholder}>
+        <div ref={reference} className={twMerge("editable w-full", rest.className)} suppressContentEditableWarning contentEditable placeholder={placeholder}>
             {text}
         </div>
     )

@@ -27,8 +27,7 @@
 
 
 body {
-  @apply bg-neutral-900;
-  color: white;
+  @apply bg-neutral-900 text-neutral-200;
   font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
@@ -36,8 +35,6 @@ body {
   outline: none;
   white-space: pre-wrap;
   overflow-wrap: break-word;
-
-  @apply hover:bg-neutral-800/25 rounded
 }
 
 .editable:empty:before {

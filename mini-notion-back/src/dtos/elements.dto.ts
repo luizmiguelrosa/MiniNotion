@@ -4,7 +4,7 @@ import { ObjectId } from "mongoose";
 export class ElementsDTO {
     @IsOptional()
     @IsMongoId()
-    readonly _id: ObjectId;
+    readonly _id: string;
 
     @IsNotEmpty()
     @IsString()

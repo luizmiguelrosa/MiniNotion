@@ -18,8 +18,8 @@ export class PageDTO {
     @IsString()
     readonly parentPage?: ObjectId;
 
-    @IsOptional()
+    /*@IsOptional()
     @ValidateNested({ each: true })
     @Type(() => ElementsDTO)
-    readonly content?: ElementsDTO[];
+    readonly content?: ElementsDTO[];*/
 }
