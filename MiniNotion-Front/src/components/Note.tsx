@@ -138,7 +138,7 @@ export default function Note({pageID}: NoteProps) {
             
             await updateElement(element, splited[0]);
             await createElement('empty', index + 1, splited[1])
-        } else if (event.nativeEvent.inputType === 'insertText') {
+        } else if (['insertText', 'insertFromPaste'].includes(event.nativeEvent.inputType)) {
             const text = element.innerText;
             if (/^(#+) (.*)/.test(text)) {
                 const [, hashes, content] = text.match(/^(#+) (.*)/);

@@ -1,5 +1,9 @@
 <h1 align="center">MiniNotion</h1>
 
+<div align="center">
+<img src="imagem.jpg"/>
+</div>
+
 Com a rotina cada vez mais cheia de compromissos da faculdade, trabalho e projetos pessoais, encontrei no Notion a solução ideal para organizar idéias e tarefas em um só lugar. 
 Após um tempo utilizando a plataforma, uma pergunta começou a surgir: 'Como isso tudo funciona por trás ?'. Foi essa curiosidade que me levou a iniciar uma jornada de estudos para entender melhor a tecnologia por trás.
 
