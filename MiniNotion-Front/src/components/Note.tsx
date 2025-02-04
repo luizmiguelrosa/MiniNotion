@@ -3,15 +3,9 @@ import EmptyElement from "./elements/EmptyElement";
 import TitleElement from "./elements/TitleElemet";
 import ListElement from "./elements/ListElement";
 import PageTitleElement from "./elements/PageTitleElemet";
+import { PageProvider, PageInterface } from "../providers/PageProvider";
 
-interface PageInterface {
-    _id: string,
-    name: string,
-    parentPage: string,
-    content: object[]
-}
-
-interface ComponentData {
+interface ElementData {
     id: string; 
     ref: React.RefObject<HTMLDivElement>; 
     type: string;
@@ -19,16 +13,21 @@ interface ComponentData {
     level?: number;
 } 
 
-export default function Note({pageID}) {
+interface NoteProps {
+    pageID: string
+}
+
+export default function Note({pageID}: NoteProps) {
     const [page, setPage] = useState<PageInterface>({})
-    const [elements, setElements] = useState<ComponentData[]>([]);
+    const [elements, setElements] = useState<ElementData[]>([]);
     const pageTitleRef = useRef<HTMLDivElement>(null);
+    const pageProvider = new PageProvider();
 
     useEffect(() => {
         if (page?.content) {         
             setElements(() => []);   
             page.content.forEach(element => {
-                createElement(element.type, -1, element.text, element.level, element._id);
+                addElement(element.type, -1, element.text, element.level, element._id);
             });
         }
     }, [page]);
@@ -38,18 +37,9 @@ export default function Note({pageID}) {
     }, [pageID]);
 
     async function fetchPage() {
-        try {
-            const response = await fetch(`http://localhost:3000/page/id/${pageID}`);
-
-            if (!response.ok)
-                throw new Error(response.statusText);
-
-            const result = await response.json();
-            
+        await pageProvider.getPage(pageID).then((result) => {
             setPage(result);
-        } catch (error) {
-            console.log(error);
-        }
+        })
     }
     
     function getLastElement(): HTMLDivElement | null { 
@@ -65,7 +55,7 @@ export default function Note({pageID}) {
         return elements.findIndex((comp) => comp.id == elementID)
     }
 
-    function createElement(type: string, position: number = -1, text: string = '', level: number = 1, id: string = Date.now().toString()): void {
+    function addElement(type: string, position: number = -1, text: string = '', level: number = 1, id: string = Date.now().toString()): void {
         let newElement = {
             id: id, 
             ref: createRef<HTMLDivElement>(), 
@@ -85,39 +75,24 @@ export default function Note({pageID}) {
         })
     }
 
-    async function modifyElement(method: string, url: string, body: object = {}) {
-        try {
-            const response = await fetch(url, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: body ? JSON.stringify(body) : null
-            });
-            if (!response.ok) throw new Error(response.statusText);
-            return await response.json();
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
-    async function sendElement(type: string, position: number = -1, text: string = '', level: number = 1): void {
+    async function createElement(type: string, position: number = -1, text: string = '', level: number = 1): void {
         const newElement = { 
             type: type,
             text: text,
             level: level
         };
 
-        const result = await modifyElement("POST", `http://localhost:3000/page/create/${page._id}/${position}`, newElement);
-
-        setElements(() => []);
-        setPage(result);
+        await pageProvider.createElement(pageID, position, newElement).then((result) => {
+            setElements(() => []);
+            setPage(result);
+        });
     }
 
-    
     async function removeElement(position: number): void {
         const element = elements[position];
         if (!element) return;
 
-        const response = await modifyElement("DELETE", `http://localhost:3000/page/delete/id/${page._id}/${element.id}`);
+        await pageProvider.removeElement(pageID, element.id);
         
         setElements((prevElements) => {
             const updatedElements = [...prevElements];
@@ -131,19 +106,23 @@ export default function Note({pageID}) {
 
     async function updateElement(element: HTMLElement, text: string) {
         let body: object;
-        let url: string;
+        let elementID: string;
         
         if (element.parentElement.id && element.parentElement.id == pageID) {
             text = (text.length < 1) ? element.getAttribute("placeholder") : text;
             body = { name: text };
-            url = "/";
+            elementID = "";
         } else {
             const elementInPage = page.content.find((element_) => element_._id == element.parentElement.id);
-            body = {_id: elementInPage._id, type: elementInPage.type, text: text, level: elementInPage.level};
-            url = `/${elementInPage._id}`;
+            body = {
+                type: elementInPage.type, 
+                text: text, 
+                level: elementInPage.level
+            };
+            elementID = elementInPage._id;
         }
 
-        const response = await modifyElement("PATCH", `http://localhost:3000/page/update/id/${page._id}${url}`, body);
+        await pageProvider.updateElement(pageID, elementID, body);
     }
     
     async function handleInput(event: React.FormEvent): void {
@@ -158,17 +137,17 @@ export default function Note({pageID}) {
             element.lastChild?.remove()
             
             await updateElement(element, splited[0]);
-            await sendElement('empty', index + 1, splited[1])
+            await createElement('empty', index + 1, splited[1])
         } else if (event.nativeEvent.inputType === 'insertText') {
             const text = element.innerText;
             if (/^(#+) (.*)/.test(text)) {
                 const [, hashes, content] = text.match(/^(#+) (.*)/);
                 await removeElement(index);
-                await sendElement('title', index, content, Math.min(hashes.length, 4));
+                await createElement('title', index, content, Math.min(hashes.length, 4));
             } else if (/^(-+) (.*)/.test(text)) {
                 const [, , content] = text.match(/^(-+) (.*)/);
                 await removeElement(index);
-                await sendElement('list', index, content);
+                await createElement('list', index, content);
             } else
                 await updateElement(element, text);
         }
@@ -178,7 +157,7 @@ export default function Note({pageID}) {
         const target = event.target as HTMLElement;
         if (!target.classList.contains('editable')) {
             if (getFirstChild() || elements.length == 0)
-                sendElement('empty');
+                createElement('empty');
             else
                 getLastElement()?.focus();
         }
