@@ -3,7 +3,9 @@ import EmptyElement from "./elements/EmptyElement";
 import TitleElement from "./elements/TitleElemet";
 import ListElement from "./elements/ListElement";
 import PageTitleElement from "./elements/PageTitleElemet";
-import { PageProvider, PageInterface } from "../providers/PageProvider";
+import * as PageProvider from "../providers/PageProvider";
+import { useNavigate } from "react-router-dom";
+import { isLoggedIn } from "../providers/AuthProvider";
 
 interface ElementData {
     id: string; 
@@ -18,28 +20,35 @@ interface NoteProps {
 }
 
 export default function Note({pageID}: NoteProps) {
-    const [page, setPage] = useState<PageInterface>({})
+    const [page, setPage] = useState<PageProvider.PageInterface>({})
     const [elements, setElements] = useState<ElementData[]>([]);
     const pageTitleRef = useRef<HTMLDivElement>(null);
-    const pageProvider = new PageProvider();
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (page?.content) {         
             setElements(() => []);   
-            page.content.forEach(element => {
-                addElement(element.type, -1, element.text, element.level, element._id);
-            });
+            page.content.forEach(element => addElement(element.type, -1, element.text, element.level, element._id));
         }
     }, [page]);
 
     useEffect(() => {
-        fetchPage();   
+        fetchPage();
     }, [pageID]);
 
     async function fetchPage() {
-        await pageProvider.getPage(pageID).then((result) => {
-            setPage(result);
-        })
+        if (await isLoggedIn())
+            try {
+                await PageProvider.getPage(pageID).then((result) => {
+                    setPage(result);
+                    document.title = result.name;
+                })
+            } catch (error) {
+                navigate("/")
+            }
+            
+        else
+            navigate("/login");
     }
     
     function getLastElement(): HTMLDivElement | null { 
@@ -82,17 +91,23 @@ export default function Note({pageID}: NoteProps) {
             level: level
         };
 
-        await pageProvider.createElement(pageID, position, newElement).then((result) => {
-            setElements(() => []);
-            setPage(result);
-        });
+        if (await isLoggedIn())
+            await PageProvider.createElement(pageID, position, newElement).then((result) => {
+                setElements(() => []);
+                setPage(result);
+            });
+        else
+            navigate("/login");
     }
 
     async function removeElement(position: number): void {
         const element = elements[position];
         if (!element) return;
 
-        await pageProvider.removeElement(pageID, element.id);
+        if (await isLoggedIn())
+            await PageProvider.removeElement(pageID, element.id);
+        else
+            navigate("/login");
         
         setElements((prevElements) => {
             const updatedElements = [...prevElements];
@@ -122,7 +137,10 @@ export default function Note({pageID}: NoteProps) {
             elementID = elementInPage._id;
         }
 
-        await pageProvider.updateElement(pageID, elementID, body);
+        if (await isLoggedIn())
+            await PageProvider.updateElement(pageID, elementID, body);
+        else
+            navigate("/login");
     }
     
     async function handleInput(event: React.FormEvent): void {
@@ -192,7 +210,7 @@ export default function Note({pageID}: NoteProps) {
     }
 
     return (
-            <main onKeyUp={handleKeyUp} onClick={handleClick} onInput={handleInput} className="h-screen overflow-y-scroll container mx-auto sm:p-6 lg:p-8">
+            <main onKeyUp={handleKeyUp} onClick={handleClick} onInput={handleInput} className="inline h-screen overflow-y-scroll container mx-auto sm:p-6 lg:p-8">
                 <PageTitleElement id={page._id} reference={pageTitleRef} text={page.name}/>
                 
                 {elements.map((comp)=>{

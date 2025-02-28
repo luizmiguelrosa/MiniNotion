@@ -2,20 +2,25 @@ import { useEffect, useState } from "react"
 import NoteSideBar from "./NoteSideBar"
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { PageProvider, PageSideBarInterface } from "../../providers/PageProvider";
+import * as PageProvider from "../../providers/PageProvider";
+import { AccountDropdown } from "./AccountDropdown";
+import { isLoggedIn } from "../../providers/AuthProvider";
 
-export default function SideBar() {
+export default function SideBar({pageID}) {
     const navigate = useNavigate();
-    const [pages, setPages] = useState<PageSideBarInterface[]>([]);
+    const [pages, setPages] = useState<PageProvider.PageSideBarInterface[]>([]);
+    const [isHidden, setIsHidden] = useState(false);
     const [sections, setSections] = useState({
         pessoal: true
     })
-    const pageProvider = new PageProvider();
 
     async function fetchPages() {
-        await pageProvider.getAll().then((result) => {
-            setPages(result);
-        });
+        if (await isLoggedIn())
+            await PageProvider.getAll().then((result) => {          
+                setPages(result);
+            });
+        else 
+            navigate("/login");
     }
 
     function toggleSection(section: string) {
@@ -25,8 +30,12 @@ export default function SideBar() {
         }))
     }
 
+    function toggleSideBar() {
+        setIsHidden(!isHidden);
+    }
+
     async function createPage() {
-        await pageProvider.createPage().then((result => {
+        await PageProvider.createPage().then((result => {
             navigate(`/${result._id}`);
             fetchPages();
         }))
@@ -35,19 +44,21 @@ export default function SideBar() {
     useEffect(() => {
         fetchPages();
         
-        const interval = setInterval(fetchPages, 2500);
+        const interval = setInterval(fetchPages, 1000);
         return () => clearInterval(interval);
     }, [])
 
     return (
-        <aside className="overflow-y-scroll sm:w-64 lg:w-80 h-screen px-2 pt-4 border-r-2 border-stone-600 bg-stone-800 opacity-100 visible transition-transform duration-500">
-            <div id="sidebarContent">
-                <div onClick={(event) => event.target.classList.contains("group/section") && toggleSection("pessoal")} className="flex items-center px-2 py-0.5 rounded hover:bg-stone-700 group/section">
-                    <span className="font-semibold text-sm select-none">Pessoal</span>
-                    <Plus onClick={() => createPage()} className="h-4 w-4 ml-auto hover:bg-stone-600 rounded transition-opacity duration-300 opacity-0 group-hover/section:opacity-100"/>
+        <aside className={`flex flex-col gap-6 sm:w-64 lg:w-80 h-screen pt-4 border-r-2 border-stone-600 bg-stone-800 transition-transform duration-300 ${!isHidden ? "translate-x-0 z-10" : "-translate-x-full"}`}>
+            <AccountDropdown isHidden={isHidden} toggleSideBar={toggleSideBar}/>
+
+            <div id="sidebarContent" className="overflow-y-auto px-2">
+                <div onClick={(event) => !event.target.classList.contains("transition-opacity") && toggleSection("pessoal")} className="flex items-center px-2 py-1 rounded-lg hover:bg-stone-700 group/section">
+                    <span className="font-semibold text-xs select-none">Pessoal</span>
+                    <Plus onClick={() => createPage()} className="h-5 w-5 p-0.5 ml-auto hover:bg-stone-600 rounded-lg transition-opacity duration-300 opacity-0 group-hover/section:opacity-100"/>
                 </div>
                 {sections.pessoal && pages.map((item) => (
-                    <NoteSideBar name={item.name} key={item._id} id={item._id}/>
+                    <NoteSideBar name={item.name} key={item._id} id={item._id} focus={item._id == pageID}/>
                 ))}
             </div>
         </aside>

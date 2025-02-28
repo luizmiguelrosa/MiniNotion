@@ -52,3 +52,9 @@ body {
 ::-webkit-scrollbar-track {
   @apply bg-stone-800;
 }
+
+.nome-limitado {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}

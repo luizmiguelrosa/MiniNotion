@@ -11,40 +11,44 @@ import { Types } from "mongoose";
 export class PageService {
     constructor(private readonly pageRepository: PageRepository) {}
 
-    async create(newPage: CreatePageDto): Promise<Page> {
+    async create(newPageDTO: CreatePageDto, userID: Types.ObjectId): Promise<Page> {
+        const newPage = {
+            userID: userID,
+            ...newPageDTO,
+        }
         return this.pageRepository.create(newPage);
     }
 
-    async createElementInPage(id: string, position: number, newElementDTO: CreateElementDTO): Promise<Page> {
-        const page = this.findOne(id);
+    async createElementInPage(userID: Types.ObjectId, id: string, position: number, newElementDTO: CreateElementDTO): Promise<Page> {
+        const page = this.findOne(userID, id);
         const newElement = {
             _id: new Types.ObjectId(),
             ...newElementDTO,
         };
         if (position == -1) (await page).content.push(newElement);
         else (await page).content.splice(position, 0, newElement);
-        return await this.pageRepository.update(id, await page);
+        return await this.pageRepository.update(userID, id, await page);
     }
 
-    async findAll(): Promise<Page[]> {
-        return this.pageRepository.findAll();
+    async findAll(userID: Types.ObjectId): Promise<Page[]> {
+        return this.pageRepository.findAll(userID);
     }
 
-    async findOne(id: string): Promise<Page> {
+    async findOne(userID: Types.ObjectId, id: string): Promise<Page> {
         try {
-            return await this.pageRepository.findOne(id);
+            return await this.pageRepository.findOne(userID, id);
         } catch (error) {
             throw new BadRequestException("Page ID not exists");
         }
     }
 
-    async update(id: string, newPage: UpdatePageDto): Promise<Page> {
-        await this.findOne(id);
-        return this.pageRepository.update(id, newPage);
+    async update(userID: Types.ObjectId, id: string, newPage: UpdatePageDto): Promise<Page> {
+        await this.findOne(userID, id);
+        return this.pageRepository.update(userID, id, newPage);
     }
 
-	async updateElementInPage(id: string, elementID: Types.ObjectId, newElementDTO: UpdateElementDTO): Promise<Page> {
-        const page = this.findOne(id);
+	async updateElementInPage(userID: Types.ObjectId, id: string, elementID: Types.ObjectId, newElementDTO: UpdateElementDTO): Promise<Page> {
+        const page = this.findOne(userID, id);
         const index = (await page).content.findIndex(
             (element) => element._id == elementID,
         );
@@ -58,15 +62,15 @@ export class PageService {
 
         (await page).content[index] = newElement;
 
-        return await this.pageRepository.update(id, await page);
+        return await this.pageRepository.update(userID, id, await page);
     }
 
     async remove(id: string): Promise<Page> {
         return await this.pageRepository.delete(id);
     }
 
-    async removeElementInPage(id: string, elementID: Types.ObjectId): Promise<Page> {
-        const page = this.findOne(id);
+    async removeElementInPage(userID: Types.ObjectId, id: string, elementID: Types.ObjectId): Promise<Page> {
+        const page = this.findOne(userID, id);
         const index = (await page).content.findIndex(
             (element) => element._id == elementID,
         );
@@ -78,6 +82,6 @@ export class PageService {
 
         (await page).content = updatedElements;
 
-        return await this.pageRepository.update(id, await page);
+        return await this.pageRepository.update(userID, id, await page);
     }
 }

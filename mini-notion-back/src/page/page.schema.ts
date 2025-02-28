@@ -19,6 +19,9 @@ class Element {
 
 @Schema()
 export class Page {
+    @Prop({ type: Types.ObjectId, required: true })
+    userID: Types.ObjectId;
+
     @Prop({ type: String, required: true })
     name: string;
 

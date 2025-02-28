@@ -1,4 +1,4 @@
-const baseURL = "http://localhost:3000/page"
+import { sendQuery } from "./Provider";
 
 export interface PageSideBarInterface {
     _id: string,
@@ -10,45 +10,30 @@ export interface PageInterface extends PageSideBarInterface {
     content: object[]
 }
 
-export class PageProvider {
-    constructor() {}
+export async function getAll(): Promise<PageSideBarInterface[]> {
+    return await sendQuery<PageSideBarInterface[]>("GET", "page/");
+}
 
-    private async sendQuery<T>(method: string, url: string, body?: object, headers = { "Content-Type": "application/json" }): Promise<T> {
-        try {
-            const response = await fetch(`${baseURL}/${url}`, {
-                method,
-                headers: headers,
-                body: body ? JSON.stringify(body) : null
-            });
-            if (!response.ok) throw new Error(response.statusText);
-            return await response.json();
-        } catch (error) {
-            console.error(error);
-            throw error;
-        }
-    }
-    
-    async getAll(): Promise<PageSideBarInterface[]> {
-        return await this.sendQuery<PageSideBarInterface[]>("GET", "");
-    }
+export async function getPage(pageID: string): Promise<PageInterface> {
+    return await sendQuery<PageInterface> ("GET", `page/${pageID}`);
+}
 
-    async getPage(pageID: string): Promise<PageInterface> {
-        return await this.sendQuery<PageInterface> ("GET", `${pageID}`);
-    }
-    
-     async createPage(): Promise<PageInterface> {
-        return await this.sendQuery<PageInterface> ("POST", "", { name: "Nova Pagina" });
-    }
+export async function createPage(): Promise<PageInterface> {
+    return await sendQuery<PageInterface> ("POST", "page/", { name: "Nova Pagina" });
+}
 
-    async createElement(pageID: string, position: number, newElement: object): Promise<PageInterface> {
-        return await this.sendQuery<PageInterface> ("POST", `${pageID}/${position}`, newElement);
-    }
+export async function createElement(pageID: string, position: number, newElement: object): Promise<PageInterface> {
+    return await sendQuery<PageInterface> ("POST", `page/${pageID}/${position}`, newElement);
+}
 
-    async removeElement(pageID: string, elementID: string): Promise<PageInterface> {
-        return await this.sendQuery<PageInterface> ("DELETE", `${pageID}/${elementID}`);
-    }
+export async function removeElement(pageID: string, elementID: string): Promise<PageInterface> {
+    return await sendQuery<PageInterface> ("DELETE", `page/${pageID}/${elementID}`);
+}
 
-    async updateElement(pageID: string, elementID: string, newElement: object): Promise<PageInterface>  {
-        return await this.sendQuery<PageInterface> ("PATCH", `${pageID}/${elementID}`, newElement);
-    }
+export async function updateElement(pageID: string, elementID: string, newElement: object): Promise<PageInterface>  {
+    return await sendQuery<PageInterface> ("PATCH", `page/${pageID}/${elementID}`, newElement);
+}
+
+export async function removePage(pageID: string): Promise<PageInterface> {
+    return await sendQuery<PageInterface> ("DELETE", `page/${pageID}`);
 }
